@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -15,7 +14,7 @@ namespace Assets.Scripts.Logs {
 
         readonly string DirectoryPacth = Directory.GetCurrentDirectory() + "\\Logs";
 
-        readonly string FilePath = Directory.GetCurrentDirectory() + "\\Logs\\Chess&CheckerFile.log";
+        readonly string FilePath = Directory.GetCurrentDirectory() + "\\Logs\\GameLogFile_01.log";
 
         string ClassName { get; set; }
 
@@ -98,6 +97,8 @@ namespace Assets.Scripts.Logs {
 
             testLine.Add("Level: " + LogLevel + " Time: " + dateTime + " class : " + ClassName + ".class : " + line);
 
+            Debug.Log(line);
+
             // write in file 
             using (StreamWriter fs = File.CreateText(FilePath))
             {
@@ -142,6 +143,8 @@ namespace Assets.Scripts.Logs {
             }
 
             testLine.Add("Level: " + LogLevel + " Time: " + dateTime + " class : " + ClassName + ".class : " + line);
+
+            Debug.Log(line);
 
             // write in file 
             using (StreamWriter fs = File.CreateText(FilePath))
