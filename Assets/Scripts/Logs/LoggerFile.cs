@@ -144,8 +144,6 @@ namespace Assets.Scripts.Logs {
 
             testLine.Add("Level: " + LogLevel + " Time: " + dateTime + " class : " + ClassName + ".class : " + line);
 
-            Debug.Log(line);
-
             // write in file 
             using (StreamWriter fs = File.CreateText(FilePath))
             {

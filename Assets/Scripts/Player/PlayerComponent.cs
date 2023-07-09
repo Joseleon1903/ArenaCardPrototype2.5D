@@ -8,7 +8,6 @@ namespace Assets.Scripts.Player
 
         [SerializeField] string alias;
 
-        [SerializeField] string tag;
 
         [SerializeField] PlayerUtilConstant.Estatus playerStatus;
 
