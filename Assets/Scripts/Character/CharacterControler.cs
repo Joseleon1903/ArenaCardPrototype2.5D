@@ -9,8 +9,9 @@ namespace Assets.Scripts.Character
     [RequireComponent(typeof(Rigidbody))]
     public class CharacterControler : MonoBehaviour
     {
-        [SerializeField] private float m_MaxSpeed = 10f;                    // The fastest the player can travel in the x axis.
         [SerializeField] private float m_JumpForce = 400f;                  // Amount of force added when the player jumps.
+        [SerializeField] private float m_MoveSpeed = 0f;                    // The fastest the player can travel in the x axis.
+
         [Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;  // Amount of maxSpeed applied to crouching movement. 1 = 100%
         [SerializeField] private bool m_AirControl = false;                 // Whether or not a player can steer while jumping;
         [SerializeField] private LayerMask m_WhatIsGround;                  // A mask determining what is ground to the character
@@ -24,6 +25,16 @@ namespace Assets.Scripts.Character
         private Rigidbody m_Rigidbody;
         private bool m_FacingRight = true;  // For determining which way the player is currently facing.
 
+        private PlayerInput _PlayerInput;
+
+        private Vector3 _Inputvalue;
+
+        private Transform _Transform;
+
+        private float horizontalInput;
+        private float moveThreshold;
+
+
         private void Awake()
         {
             // Setting up references.
@@ -31,29 +42,58 @@ namespace Assets.Scripts.Character
             m_CeilingCheck = transform.Find("CeilingCheck");
             m_Anim = GetComponent<Animator>();
             m_Rigidbody = GetComponent<Rigidbody>();
+            _PlayerInput = GetComponent<PlayerInput>();
+            _Transform = GetComponent<Transform>();
         }
 
+        private void Start()
+        {
+            // just a cpu save for the FixedUpdate check to prevent floating precision issues
+            moveThreshold = 0.95f * m_MoveSpeed;
+        }
+
+
+        private void Update()
+        {
+            _Inputvalue = _PlayerInput.actions["Move"].ReadValue<Vector2>();
+        }
 
         private void FixedUpdate()
         {
-           /* m_Grounded = false;
-
-            // The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
-            // This can be done using layers instead but Sample Assets will not overwrite your project settings.
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(m_GroundCheck.position, k_GroundedRadius, m_WhatIsGround);
-            for (int i = 0; i < colliders.Length; i++)
+            // add force to movement
+            if (_Inputvalue == Vector3.left)
             {
-                if (colliders[i].gameObject != gameObject)
-                    m_Grounded = true;
+                LoggerFile.Instance.INFO_LINE("press left");
+                if (m_Rigidbody.velocity.z > -moveThreshold) m_Rigidbody.AddForce(new Vector3(0, 0, -m_MoveSpeed - m_Rigidbody.velocity.z), ForceMode.VelocityChange);
             }
-            m_Anim.SetBool("Ground", m_Grounded);
+            else if (_Inputvalue == Vector3.right)
+            {
+                LoggerFile.Instance.INFO_LINE("press right");
+                if (m_Rigidbody.velocity.z < moveThreshold) m_Rigidbody.AddForce(new Vector3(0, 0, m_MoveSpeed - m_Rigidbody.velocity.z), ForceMode.VelocityChange);
+            }
+            else {
+                if (Mathf.Abs(m_Rigidbody.velocity.x) > 0) m_Rigidbody.AddForce(new Vector3(-m_Rigidbody.velocity.x, 0, 0), ForceMode.VelocityChange);
+            }
 
-            // Set the vertical animation
-            m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);*/
+
+            /* m_Grounded = false;
+
+             // The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
+             // This can be done using layers instead but Sample Assets will not overwrite your project settings.
+             Collider2D[] colliders = Physics2D.OverlapCircleAll(m_GroundCheck.position, k_GroundedRadius, m_WhatIsGround);
+             for (int i = 0; i < colliders.Length; i++)
+             {
+                 if (colliders[i].gameObject != gameObject)
+                     m_Grounded = true;
+             }
+             m_Anim.SetBool("Ground", m_Grounded);
+
+             // Set the vertical animation
+             m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);*/
         }
 
 
-        public void Move(float move, bool crouch, bool jump)
+        /*public void Move(float move, bool crouch, bool jump)
         {
             // If crouching, check to see if the character can stand up
             if (!crouch && m_Anim.GetBool("Crouch"))
@@ -101,7 +141,7 @@ namespace Assets.Scripts.Character
                 m_Anim.SetBool("Ground", false);
                 m_Rigidbody.AddForce(new Vector2(0f, m_JumpForce));
             }
-        }
+        }*/
 
 
         private void Flip()
@@ -117,17 +157,26 @@ namespace Assets.Scripts.Character
 
 
         public void Jump(InputAction.CallbackContext callbackContext) {
-
-
             //add jump force to player
-
             if (callbackContext.performed) {
                 m_Rigidbody.AddForce(Vector3.up * m_JumpForce);
                 LoggerFile.Instance.INFO_LINE("Salto Up press");
             }
-
-
         }
+
+        /*public void MoveRight(InputAction.CallbackContext callbackContext)
+        {
+
+            float horizontalM = Input.GetAxis("Horizontal");
+            LoggerFile.Instance.INFO_LINE("Mover Right press");
+
+            //add move force to player
+            if (callbackContext.performed)
+            {
+                m_Rigidbody.velocity = new Vector3(m_MaxSpeed, m_Rigidbody.velocity.y, m_Rigidbody.velocity.z);
+                //m_Rigidbody.velocity = new Vector3(horizontalM * m_MaxSpeed, m_Rigidbody.velocity.z);
+            }
+        }*/
 
     }
 }
