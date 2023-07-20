@@ -20,7 +20,7 @@ namespace Assets.Scripts.Character
         private Transform _Transform;
 
         // ground check validate for prevent double jump 
-        private float raycastDistance = 2.0f;
+        private float raycastDistance = 1.0f;
         public LayerMask groundLayer;
 
         public bool isGrounded;
