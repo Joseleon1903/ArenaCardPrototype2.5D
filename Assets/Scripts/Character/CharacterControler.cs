@@ -1,6 +1,4 @@
 using Assets.Scripts.Logs;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,34 +10,26 @@ namespace Assets.Scripts.Character
         [SerializeField] private float m_JumpForce = 400f;                  // Amount of force added when the player jumps.
         [SerializeField] private float m_MoveSpeed = 0f;                    // The fastest the player can travel in the x axis.
 
-        [Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;  // Amount of maxSpeed applied to crouching movement. 1 = 100%
-        [SerializeField] private bool m_AirControl = false;                 // Whether or not a player can steer while jumping;
-        [SerializeField] private LayerMask m_WhatIsGround;                  // A mask determining what is ground to the character
-
-        private Transform m_GroundCheck;    // A position marking where to check if the player is grounded.
-        const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
-        private bool m_Grounded;            // Whether or not the player is grounded.
-        private Transform m_CeilingCheck;   // A position marking where to check for ceilings
-        const float k_CeilingRadius = .01f; // Radius of the overlap circle to determine if the player can stand up
         private Animator m_Anim;            // Reference to the player's animator component.
         private Rigidbody m_Rigidbody;
-        private bool m_FacingRight = true;  // For determining which way the player is currently facing.
 
         private PlayerInput _PlayerInput;
 
         private Vector3 _Inputvalue;
-
+        private float moveThreshold;
         private Transform _Transform;
 
-        private float horizontalInput;
-        private float moveThreshold;
+        // ground check validate for prevent double jump 
+        private float raycastDistance = 2.0f;
+        public LayerMask groundLayer;
+
+        public bool isGrounded;
+
 
 
         private void Awake()
         {
             // Setting up references.
-            m_GroundCheck = transform.Find("GroundCheck");
-            m_CeilingCheck = transform.Find("CeilingCheck");
             m_Anim = GetComponent<Animator>();
             m_Rigidbody = GetComponent<Rigidbody>();
             _PlayerInput = GetComponent<PlayerInput>();
@@ -60,20 +50,29 @@ namespace Assets.Scripts.Character
 
         private void FixedUpdate()
         {
+            // ground check 
+            GroundCheck();
+
             // add force to movement
             if (_Inputvalue == Vector3.left)
             {
                 LoggerFile.Instance.INFO_LINE("press left");
                 if (m_Rigidbody.velocity.z > -moveThreshold) m_Rigidbody.AddForce(new Vector3(0, 0, -m_MoveSpeed - m_Rigidbody.velocity.z), ForceMode.VelocityChange);
+                transform.LookAt(transform.position + Vector3.back);
             }
             else if (_Inputvalue == Vector3.right)
             {
                 LoggerFile.Instance.INFO_LINE("press right");
                 if (m_Rigidbody.velocity.z < moveThreshold) m_Rigidbody.AddForce(new Vector3(0, 0, m_MoveSpeed - m_Rigidbody.velocity.z), ForceMode.VelocityChange);
+                transform.LookAt(transform.position + Vector3.forward);
             }
             else {
                 if (Mathf.Abs(m_Rigidbody.velocity.x) > 0) m_Rigidbody.AddForce(new Vector3(-m_Rigidbody.velocity.x, 0, 0), ForceMode.VelocityChange);
             }
+/*
+            if (_Transform.position.x != 0) {
+                _Transform.position = new Vector3(Vector3.zero.x, _Transform.position.y, _Transform.position.z);
+            }*/
 
 
             /* m_Grounded = false;
@@ -143,40 +142,42 @@ namespace Assets.Scripts.Character
             }
         }*/
 
-
-        private void Flip()
+        public void FlipHorizontally()
         {
-            // Switch the way the player is labelled as facing.
-            m_FacingRight = !m_FacingRight;
-
-            // Multiply the player's x local scale by -1.
-            Vector3 theScale = transform.localScale;
-            theScale.x *= -1;
-            transform.localScale = theScale;
+            Vector3 newScale = _Transform.localScale;
+            newScale.x *= -1; // Flip the object's scale on the x-axis
+            _Transform.localScale = newScale;
         }
 
 
         public void Jump(InputAction.CallbackContext callbackContext) {
             //add jump force to player
-            if (callbackContext.performed) {
+            if (callbackContext.performed && isGrounded) {
                 m_Rigidbody.AddForce(Vector3.up * m_JumpForce);
                 LoggerFile.Instance.INFO_LINE("Salto Up press");
             }
         }
 
-        /*public void MoveRight(InputAction.CallbackContext callbackContext)
-        {
 
-            float horizontalM = Input.GetAxis("Horizontal");
-            LoggerFile.Instance.INFO_LINE("Mover Right press");
+        public void GroundCheck() {
+            RaycastHit hit;
+            isGrounded = Physics.Raycast(_Transform.position, Vector3.down, out hit, raycastDistance, groundLayer);
 
-            //add move force to player
-            if (callbackContext.performed)
+            // Opcional: Dibuja el rayo en el editor para depurar
+            Debug.DrawRay(_Transform.position, Vector3.down * raycastDistance, Color.red);
+
+            // Ejemplo de cómo usar la variable "isGrounded"
+            if (isGrounded)
             {
-                m_Rigidbody.velocity = new Vector3(m_MaxSpeed, m_Rigidbody.velocity.y, m_Rigidbody.velocity.z);
-                //m_Rigidbody.velocity = new Vector3(horizontalM * m_MaxSpeed, m_Rigidbody.velocity.z);
+                // El objeto está tocando el suelo, puedes realizar acciones específicas aquí
+                isGrounded = true;
             }
-        }*/
+            else
+            {
+                // El objeto no está tocando el suelo, puedes realizar otras acciones aquí
+                isGrounded = false;
+            }
+        }
 
     }
 }
