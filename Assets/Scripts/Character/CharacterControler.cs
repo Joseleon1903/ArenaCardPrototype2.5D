@@ -1,4 +1,5 @@
 using Assets.Scripts.Logs;
+using Assets.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,6 +10,8 @@ namespace Assets.Scripts.Character
     {
         [SerializeField] private float m_JumpForce = 400f;                  // Amount of force added when the player jumps.
         [SerializeField] private float m_MoveSpeed = 0f;                    // The fastest the player can travel in the x axis.
+
+        [SerializeField] private GameObject Weapon;
 
         private Animator m_Anim;            // Reference to the player's animator component.
         private Rigidbody m_Rigidbody;
@@ -177,6 +180,17 @@ namespace Assets.Scripts.Character
                 // El objeto no está tocando el suelo, puedes realizar otras acciones aquí
                 isGrounded = false;
             }
+        }
+
+        public void Shoot(InputAction.CallbackContext callbackContext) {
+
+            if (callbackContext.performed)
+            {
+                LoggerFile.Instance.INFO_LINE("Player shoot");
+                var weapon = GameObject.FindGameObjectWithTag("Weapon");
+                weapon.GetComponent<Weapon>().Fire();
+            }
+
         }
 
     }
